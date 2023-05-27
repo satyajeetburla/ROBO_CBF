@@ -15,7 +15,7 @@ class CBFLoss:
         self._alpha = alpha
         self._dual_vars = dual_vars
         self._norm_T_x = 1.0 #jnp.linalg.norm(T_x)
-        self.delta_x =0.5
+        self.delta_x =0.5 # Change the vause of delta_x here
         print("delta_x:", self.delta_x )
         print("value of Lip", self._hparams.lip_const_a,self._hparams.lip_const_b)
 
