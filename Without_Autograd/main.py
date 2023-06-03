@@ -113,8 +113,11 @@ def main(args):
             fname = os.path.join(args.results_path, 'trained_cbf.npy')
             with open(fname, 'wb') as handle:
                 pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    lip_a_s,lip_b_s = PrimalDualLoss.lip_fun_cal_sample(params, data_dict)
+    print("lip_A with sample", lip_a_s)
+    print("lip_B with sample", lip_b_s)
     lip_a,lip_b = PrimalDualLoss.lip_fun_cal(params, data_dict) 
-    print("lip_A", lip_a,lip_b)
+    print("lip_A", lip_a)
     print("lip_B", lip_b)
     wandb.finish()
 
