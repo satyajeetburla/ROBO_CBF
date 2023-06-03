@@ -46,29 +46,34 @@ class CBFLoss:
         full_data = jnp.hstack((states, disturbances, inputs))
         return jax.vmap(cbf_term_indiv, in_axes=(0))(full_data)
     def B_terms(self, params, states, disturbances, inputs):
-        data = jnp.hstack((states, disturbances, inputs))
-        x, d, u = data[:4], data[4], data[5]
-        scalar_network = lambda x_ : jnp.sum(self._network.apply(params, x_))
-        dh = jax.grad(scalar_network)(x)
-        B1 = jnp.dot(dh, self._dynamics.f(x, d)) + self._alpha(scalar_network(x))
-        B2 = jnp.dot(dh, self._dynamics.g(x))
-        B3 = 0
-        if self._hparams.robust is True:
-             B1 -= jnp.linalg.norm(dh) *  (self._norm_T_x * self._hparams.delta_f)
-             B3 = -jnp.linalg.norm(dh) *  (self._norm_T_x * self._hparams.delta_g)
+        def B_ind(data):
+            x, d, u = data[:4], data[4], data[5]
+            scalar_network = lambda x_ : jnp.sum(self._network.apply(params, x_))
+            dh = jax.grad(scalar_network)(x)
+            B1 = jnp.dot(dh, self._dynamics.f(x, d)) + self._alpha(scalar_network(x))
+            B2 = jnp.dot(dh, self._dynamics.g(x))
+            B3 = 0
+            if self._hparams.robust is True:
+                B1 -= jnp.linalg.norm(dh) *  (self._norm_T_x * self._hparams.delta_f)
+                B3 = -jnp.linalg.norm(dh) *  (self._norm_T_x * self._hparams.delta_g)
 
-        if self._hparams.use_lip_output_term is True:
-              #B1 -=((self._hparams.lip_const_a)*(self.delta_x))
-              #B3-= ((self._hparams.lip_const_b)*(self.delta_x))
+            #if self._hparams.use_lip_output_term is True:
+                 #B1 -=((self._hparams.lip_const_a)*(self.delta_x))
+                 #B3-= ((self._hparams.lip_const_b)*(self.delta_x))
 
 
-        B1_dx = jax.grad(B1)(x)
-        B2_dx = jax.grad(B2)(x)
-        B3_dx = jax.grad(B3)(x)
-        B1_dx_data = jax.vmap(B1_dx, in_axes=(0))(data)
-        B2_dx_data = jax.vmap(B2_dx, in_axes=(0))(data)
-        B3_dx_data = jax.vmap(B3_dx, in_axes=(0))(data)
-        return B1_dx_data, B1_dx_data, B1_dx_data
+            B1_dx = jax.grad(lambda x:jnp.sum(B1))(x)
+            B2_dx = jax.grad(lambda x:jnp.sum(B2))(x)
+            B3_dx = jax.grad(lambda x:jnp.sum(B3))(x)
+#               B1_dx = jax.grad(B1)(x)
+#               B2_dx = jax.grad(B2)(x)
+#               B3_dx = jax.grad(B3)(x)
+            return B1_dx,B2_dx,B3_dx   
+        full_data = jnp.hstack((states, disturbances, inputs))
+#         B1_dx_data, B2_dx_data, B3_dx_data = jax.vmap(B_ind, in_axes=(0))(full_data)
+        B1_dx_data, B2_dx_data, B3_dx_data = jax.vmap(B_ind, in_axes=(0))(full_data)
+        return B1_dx_data, B2_dx_data, B3_dx_data
+        #return B1_dx,B2_dx,B3_dx
 
     # @partial(jax.jit, static_argnums=0)
     def loss_fn(self, params, data_dict):
@@ -122,11 +127,25 @@ class CBFLoss:
         diffs['dyn'] = self._hparams.gamma_dyn - cbf_output
         losses['dyn'] = self.loss_with_dual_var(self._dual_vars['dyn'], diffs['dyn'])
         consts['dyn'] = self.const_satisfaction(diffs['dyn'])
-        B1_dx_data, B1_dx_data, B1_dx_data = self.B_terms(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'])
-        Print("b1shape",B1_dx_data.shape)
-        Print("b1data",B1_dx_data)
-
-
+        B1_dx_data, B2_dx_data, B3_dx_data = self.B_terms(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'])
+#         print("b1shape",B1_dx_data.shape)
+#         print("b2shape",B2_dx_data.shape)
+#         print("b3shape",B3_dx_data.shape)
+        norm_array_1 = jnp.linalg.norm(B1_dx_data, axis=1, keepdims=True)
+#         print("norm_shape",norm_array_1.shape)
+        max_value_1 = jnp.max(norm_array_1)
+        print("B1 val max",max_value_1)
+        norm_array_2 = jnp.linalg.norm(B2_dx_data, axis=1, keepdims=True)
+#         print("norm_shape",norm_array_2.shape)
+        max_value_2 = jnp.max(norm_array_2)
+        print("B2 val max",max_value_2)        
+        norm_array_3 = jnp.linalg.norm(B3_dx_data, axis=1, keepdims=True)
+#         print("norm_shape",norm_array_3.shape)
+        max_value_3 = jnp.max(norm_array_3)
+        print("B3 val max",max_value_3)
+        self._hparams.lip_const_a = max_value_1
+        self._hparams.lip_const_b = max_value_2 + max_value_3
+        
         # Penalize large values of the derivative
         def grad_indiv(x):
             scalar_network = lambda x_ : jnp.sum(self._network.apply(params, x_))
@@ -136,17 +155,6 @@ class CBFLoss:
 
         # Penalize large parameter values
         losses['param'] = self._hparams.lambda_param * jnp.sum(jnp.square(ravel_pytree(params)[0]))
-
-    # Compute the gradients of the network output with respect to the inputs
-        #def network_grad(x):
-            #scalar_network = lambda x_: jnp.sum(self._network.apply(params, x_))
-            #return grad(scalar_network)(x)
-
-        #grad_all_output = vmap(network_grad)(data_dict['all'])
-
-    # Compute the Lipschitz constants using autograd
-        #self._hparams.lip_const_a = grad_all_output.mean()
-        #self._hparams.lip_const_b = grad_all_output.mean()
 
 # loss = safe_loss + unsafe_loss + dyn_loss + dh_loss + param_loss
         loss = losses['safe'] + losses['unsafe'] + losses['dyn'] + losses['param'] + losses['grad']
