@@ -142,15 +142,15 @@ class CBFLoss:
         norm_array_1 = jnp.linalg.norm(B1_dx_data, axis=1, keepdims=True)
 #         print("norm_shape",norm_array_1.shape)
         max_value_1 = jnp.mean(norm_array_1)
-        print("B1 val max",max_value_1)
+#         print("B1 val max",max_value_1)
         norm_array_2 = jnp.linalg.norm(B2_dx_data, axis=1, keepdims=True)
-    #    print("norm_shape",norm_array_2.shape)
+#         print("norm_shape",norm_array_2.shape)
         max_value_2 = jnp.mean(norm_array_2)
-        print("B2 val max",max_value_2)        
+#         print("B2 val max",max_value_2)        
         norm_array_3 = jnp.linalg.norm(B3_dx_data, axis=1, keepdims=True)
-#        print("norm_shape",norm_array_3.shape)
+#         print("norm_shape",norm_array_3.shape)
         max_value_3 = jnp.mean(norm_array_3)
-        print("B3 val max",max_value_3)
+#         print("B3 val max",max_value_3)
         self._hparams.lip_const_a = max_value_1
         self._hparams.lip_const_b = max_value_2 + max_value_3
         
