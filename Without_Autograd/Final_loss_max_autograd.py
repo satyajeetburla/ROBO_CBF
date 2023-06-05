@@ -105,7 +105,7 @@ class CBFLoss:
       lip_const_b = max_value_2 + max_value_3
       return lip_const_a,lip_const_b
     
-      def lip_fun_cal_sample(self, params, data_dict ):
+    def lip_fun_cal_sample(self, params, data_dict ):
       #Sample data
       data_all = data_dict['all']
       num_rows = data_all.shape[0]
