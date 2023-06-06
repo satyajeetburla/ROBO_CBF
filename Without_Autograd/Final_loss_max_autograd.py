@@ -94,7 +94,7 @@ class CBFLoss:
       data_all_dists = data_dict['all_dists']
       data_all_inputs = data_dict['all_inputs']
 
-      B1_dx_data, B2_dx_data, B3_dx_data = self.B_terms(params, data_all_selected_rows, data_all_dists_selected_rows , data_all_inputs_selected_rows)
+      B1_dx_data, B2_dx_data, B3_dx_data = self.B_terms(params, data_all, data_all_dists , data_all_inputs)
       norm_array_1 = jnp.linalg.norm(B1_dx_data, axis=1, keepdims=True)
       max_value_1 = jnp.max(norm_array_1)
       norm_array_2 = jnp.linalg.norm(B2_dx_data, axis=1, keepdims=True)
