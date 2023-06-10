@@ -5,6 +5,8 @@ from jax.flatten_util import ravel_pytree
 from functools import partial
 from jax import grad, vmap
 import numpy as np
+import os
+import pickle
 
 class CBFLoss:
 
@@ -165,15 +167,17 @@ class CBFLoss:
         # Specify the path where you want to save the files
 
 
-        lip_const_a_np = jax.device_get(lip_const_a)
-        lip_const_b_np = jax.device_get(lip_const_b)
+        cpu_array1 = jax.device_put(lip_const_a)
+        cpu_array2 = jax.device_put(lip_const_b)
+        with open("my_array.pkl", "wb") as f:
+            pickle.dump(cpu_array1, f)
 
-        file_path_a = "./results-tmp/lip_const_a.npy"
-        file_path_b = "./results-tmp/lip_const_b.npy"
+#         file_path_a = "./results-tmp/lip_const_a.npy"
+#         file_path_b = "./results-tmp/lip_const_b.npy"
 
-        # Save the variables as NumPy arrays
-        np.save(file_path_a, lip_const_a_np)
-        np.save(file_path_b, lip_const_b_np)
+#         # Save the variables as NumPy arrays
+#         np.save(file_path_a, lip_const_a_np)
+#         np.save(file_path_b, lip_const_b_np)
       
         
         cbf_output = self.cbf_term(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'],lip_const_a, lip_const_b)
