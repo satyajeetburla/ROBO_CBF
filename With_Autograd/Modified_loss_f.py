@@ -164,6 +164,9 @@ class CBFLoss:
         print("lip_const_b",lip_const_b)
         #lip_const_b = norm_array_2
         
+        file_path = "./results-tmp/lip_constants.npy"
+        jnp.save(file_path, (lip_const_a, lip_const_b))
+        
         cbf_output = self.cbf_term(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'],lip_const_a, lip_const_b)
         diffs['dyn'] = self._hparams.gamma_dyn - cbf_output
         losses['dyn'] = self.loss_with_dual_var(self._dual_vars['dyn'], diffs['dyn'])
