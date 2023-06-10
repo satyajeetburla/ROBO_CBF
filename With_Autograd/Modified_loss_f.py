@@ -160,10 +160,14 @@ class CBFLoss:
         print(norm_array_1.shape)
         lip_const_a = norm_array_1
         lip_const_b = norm_array_2 + norm_array_3
-        lip_const_a_np = jnp.array(lip_const_a)
-        lip_const_b_np = jnp.array(lip_const_b)
+
 
         # Specify the path where you want to save the files
+
+
+        lip_const_a_np = jax.device_get(lip_const_a)
+        lip_const_b_np = jax.device_get(lip_const_b)
+
         file_path_a = "./results-tmp/lip_const_a.npy"
         file_path_b = "./results-tmp/lip_const_b.npy"
 
