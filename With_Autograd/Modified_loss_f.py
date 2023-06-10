@@ -4,7 +4,7 @@ import jax.nn as jnn
 from jax.flatten_util import ravel_pytree
 from functools import partial
 from jax import grad, vmap
-
+import numpy as np
 
 class CBFLoss:
 
@@ -160,12 +160,17 @@ class CBFLoss:
         print(norm_array_1.shape)
         lip_const_a = norm_array_1
         lip_const_b = norm_array_2 + norm_array_3
-        print("lip_const_a",lip_const_a)
-        print("lip_const_b",lip_const_b)
-        #lip_const_b = norm_array_2
-        
-        file_path = "./results-tmp/lip_constants.npy"
-        jnp.save(file_path, (lip_const_a, lip_const_b))
+        lip_const_a_np = jnp.array(lip_const_a)
+        lip_const_b_np = jnp.array(lip_const_b)
+
+        # Specify the path where you want to save the files
+        file_path_a = "./results-tmp/lip_const_a.npy"
+        file_path_b = "./results-tmp/lip_const_b.npy"
+
+        # Save the variables as NumPy arrays
+        np.save(file_path_a, lip_const_a_np)
+        np.save(file_path_b, lip_const_b_np)
+      
         
         cbf_output = self.cbf_term(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'],lip_const_a, lip_const_b)
         diffs['dyn'] = self._hparams.gamma_dyn - cbf_output
