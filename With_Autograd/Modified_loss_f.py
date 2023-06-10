@@ -159,8 +159,8 @@ class CBFLoss:
         print(data_dict['all'].shape)
         print(norm_array_1.shape)
         lip_const_a = norm_array_1
-        #lip_const_b = norm_array_2 + norm_array_3
-        lip_const_b = norm_array_2
+        lip_const_b = norm_array_2 + norm_array_3
+        #lip_const_b = norm_array_2
         
         cbf_output = self.cbf_term(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'],lip_const_a, lip_const_b)
         diffs['dyn'] = self._hparams.gamma_dyn - cbf_output
