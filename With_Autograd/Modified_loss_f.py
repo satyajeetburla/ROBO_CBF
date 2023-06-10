@@ -20,17 +20,18 @@ class CBFLoss:
         print("value of Lip", self._hparams.lip_const_a,self._hparams.lip_const_b)
 
     @partial(jax.jit, static_argnums=0)
-    def cbf_term(self, params, states, disturbances, inputs):
+    def cbf_term(self, params, states, disturbances, inputs, lip_const_a, lip_const_b):
 
         def cbf_term_indiv(data):
 
-            x, d, u = data[:4], data[4], data[5]
+            x, d, u, lip_a, lip_b = data[:4], data[4], data[5], data[6], data[7]
 
             scalar_network = lambda x_ : jnp.sum(self._network.apply(params, x_))
             dh = jax.grad(scalar_network)(x)
 
             term1 = jnp.dot(dh, self._dynamics.f(x, d) + self._dynamics.g(x) * u)
             term2 = self._alpha(scalar_network(x))
+            
             cbf_term_ = term1 + term2
 
             if self._hparams.robust is True:
@@ -39,11 +40,12 @@ class CBFLoss:
 
             if self._hparams.use_lip_output_term is True:
                 # cbf_term_ -= self._hparams.lip_const_a + self._hparams.lip_const_b * jnp.linalg.norm(u)
-                print("lip:",  self._hparams.lip_const_a,self._hparams.lip_const_b)
-                cbf_term_ -= ((self._hparams.lip_const_a + self._hparams.lip_const_b * jnp.linalg.norm(u))*(self.delta_x))
+                #print("lip:",  self._hparams.lip_const_a,self._hparams.lip_const_b)
+              
+                cbf_term_ -= ((lip_a +lip_b * jnp.linalg.norm(u))*(self.delta_x))
             return cbf_term_
 
-        full_data = jnp.hstack((states, disturbances, inputs))
+        full_data = jnp.hstack((states, disturbances, inputs, lip_const_a, lip_const_b))
         return jax.vmap(cbf_term_indiv, in_axes=(0))(full_data)
       
       
@@ -127,10 +129,7 @@ class CBFLoss:
         consts['unsafe'] = self.const_satisfaction(diffs['unsafe'])
 
         # q(u, x) >= \gamma_dyn <=> \gamma_dyn - q(u, x) <= 0
-        cbf_output = self.cbf_term(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'])
-        diffs['dyn'] = self._hparams.gamma_dyn - cbf_output
-        losses['dyn'] = self.loss_with_dual_var(self._dual_vars['dyn'], diffs['dyn'])
-        consts['dyn'] = self.const_satisfaction(diffs['dyn'])
+
         
         #Lip Calculation
         B1_dx_data, B2_dx_data, B3_dx_data = self.B_terms(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'])
@@ -156,9 +155,14 @@ class CBFLoss:
 #        self._hparams.lip_const_b = max_value_2 + max_value_3
         print(data_dict['all'].shape)
         print(norm_array_1.shape)
-        self._hparams.lip_const_a = norm_array_1
-        self._hparams.lip_const_b = norm_array_2 + norm_array_3
+        lip_const_a = norm_array_1
+        #lip_const_b = norm_array_2 + norm_array_3
+        lip_const_b = norm_array_2
         
+        cbf_output = self.cbf_term(params, data_dict['all'], data_dict['all_dists'], data_dict['all_inputs'],lip_const_a, lip_const_b)
+        diffs['dyn'] = self._hparams.gamma_dyn - cbf_output
+        losses['dyn'] = self.loss_with_dual_var(self._dual_vars['dyn'], diffs['dyn'])
+        consts['dyn'] = self.const_satisfaction(diffs['dyn'])
         
         # Penalize large values of the derivative
         def grad_indiv(x):
