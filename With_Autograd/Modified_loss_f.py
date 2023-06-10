@@ -154,7 +154,7 @@ class CBFLoss:
         
 #        self._hparams.lip_const_a = max_value_1
 #        self._hparams.lip_const_b = max_value_2 + max_value_3
-        print(data.shape)
+        print(data_dict['all'].shape)
         print(norm_array_1.shape)
         self._hparams.lip_const_a = norm_array_1
         self._hparams.lip_const_b = norm_array_2 + norm_array_3
