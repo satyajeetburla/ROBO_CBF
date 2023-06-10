@@ -28,11 +28,14 @@ class CBFLoss:
 
             scalar_network = lambda x_ : jnp.sum(self._network.apply(params, x_))
             dh = jax.grad(scalar_network)(x)
+            
 
             term1 = jnp.dot(dh, self._dynamics.f(x, d) + self._dynamics.g(x) * u)
             term2 = self._alpha(scalar_network(x))
             
+            
             cbf_term_ = term1 + term2
+            print("cbf_shape",cbf_term_.shape, lip_a.shape )
 
             if self._hparams.robust is True:
                 multiplier = self._norm_T_x * (self._hparams.delta_f + self._hparams.delta_g * jnp.linalg.norm(u))
