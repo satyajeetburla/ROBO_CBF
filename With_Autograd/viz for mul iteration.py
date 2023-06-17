@@ -10,9 +10,9 @@ import jax.numpy as jnp
 sns.set(style='darkgrid', font_scale=2.5)
 
 class Visualizer:
-    def __init__(self, net, result_path_i, data_dict, cbf_fn):
+    def __init__(self, net, result_path, data_dict, cbf_fn):
         self._net = net
-        self._results_path = result_path_i
+        self._results_path = result_path
         self._data_dict = data_dict
         self._cbf_fn = cbf_fn
 
@@ -55,7 +55,7 @@ class Visualizer:
         plt.figure()
         sns.boxplot(data=df, x='Constraint-Type', y='h(x)')
         wandb.log({'separation': wandb.Image(plt)})
-        plt.savefig(os.path.join(self._results_path, f'iteration_{iteration}', 'state_separation.png'))
+        plt.savefig(os.path.join(self._results_path, f'result_path_{iteration}', 'state_separation.png'))
         plt.close()
 
     def single_level_set(self, params, iteration):
@@ -95,7 +95,7 @@ class Visualizer:
         plt.subplots_adjust(left=0.2)
 
         wandb.log({'level_set': wandb.Image(plt)})
-        plt.savefig(os.path.join(self._results_path, f'iteration_{iteration}', 'level_set.png'))
+        plt.savefig(os.path.join(self._results_path,  f'result_path_{iteration}','level_set.png'))
         plt.close()
 
     def level_sets(self, params, iteration):
@@ -134,5 +134,5 @@ class Visualizer:
                 ax.set_ylabel('theta_e')
 
         wandb.log({'level_sets': wandb.Image(plt)})
-        plt.savefig(os.path.join(self._results_path, f'iteration_{iteration}', 'level_sets.png'))
+        plt.savefig(os.path.join(self._results_path,  f'result_path_{iteration}','level_sets.png'))
         plt.close()
