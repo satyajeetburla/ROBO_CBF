@@ -98,18 +98,20 @@ def main(args):
                 else:
                     wandb.log({f'{key} dual var': dual_vars[key].item() for key in dual_vars.keys()})
 
-                viz.state_separation(params)
-                viz.single_level_set(params)
-                viz.level_sets(params)
+                viz.state_separation(params, i)
+                viz.single_level_set(params, i)
+                viz.level_sets(params, i)
                 print("value of Lip",args.lip_const_a,args.lip_const_b)
                 fname = os.path.join(result_path_i, 'trained_cbf.npy')
                 with open(fname, 'wb') as handle:
                     pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+        plt.figure(figsize=(12, 6))  # Set the figure size to a larger size
         plt.plot(steps, losses_over_steps)
         plt.xlabel('Step')
         plt.ylabel('Loss')
         plt.title(f'Loss over Steps - Run {i}')
+        plt.xticks(range(0, args.n_epochs + 1, 100))  # Add more x-axis ticks
         plt.savefig(os.path.join(result_path_i, f'loss_plot_{i}.png'))
         plt.close()
     wandb.finish()
