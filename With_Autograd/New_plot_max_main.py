@@ -105,7 +105,8 @@ def main(args):
                 fname = os.path.join(result_path_i, 'trained_cbf.npy')
                 with open(fname, 'wb') as handle:
                     pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+        df_losses = pd.DataFrame({f'{key}_loss': [losses[key]] for key in losses.keys()})
+        df_losses.to_csv(os.path.join(result_path_i, f'losses_{i}.txt'), sep='\t', index=False)
         plt.figure(figsize=(12, 6))  # Set the figure size to a larger size
         plt.plot(steps, losses_over_steps)
         plt.xlabel('Step')
