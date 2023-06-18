@@ -7,7 +7,7 @@ import jax.nn as jnn
 import wandb
 import os
 import pickle
-
+import matplotlib.pyplot as plt
 from core.utils.parse_args import parse_args
 from core.utils.viz import Visualizer
 from core.data.load import load_data_v2
