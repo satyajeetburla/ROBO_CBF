@@ -106,9 +106,8 @@ def main(args):
                 with open(fname, 'wb') as handle:
                     pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
                 loss_path = os.path.join(result_path_i, f'loss_{i}.pkl')
-                with open(loss_path, 'wb') as handle:
-                    pickle.dump(loss, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+                with open(os.path.join(result_path_i, f'Total_loss_{i}.txt'), 'w') as file:
+                    file.write(f'{loss:.3f}')
         df_losses = pd.DataFrame({f'{key}_loss': [losses[key]] for key in losses.keys()})
         df_losses.to_csv(os.path.join(result_path_i, f'losses_{i}.txt'), sep='\t', index=False)
         plt.figure(figsize=(12, 6))  # Set the figure size to a larger size
