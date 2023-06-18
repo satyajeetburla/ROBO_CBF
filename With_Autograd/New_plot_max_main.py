@@ -51,7 +51,7 @@ def main(args):
     opt_state = opt_init(params)
 
     loss = PrimalDualLoss.loss_fn(params, data_dict)
-    for i in range(1, 11):
+    for i in range(1, 21):
         result_path_i = os.path.join(args.results_path, f'result_path_{i}')
         os.makedirs(result_path_i, exist_ok=True)
         print("Trail:",i)
