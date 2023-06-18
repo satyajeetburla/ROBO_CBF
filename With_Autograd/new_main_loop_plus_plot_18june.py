@@ -119,7 +119,7 @@ def main(args):
         plt.plot(steps, losses_over_steps)
         plt.xlabel('Step')
         plt.ylabel('Loss')
-        plt.title(f'Loss over Steps - Run {i}')
+        plt.title(f'Loss over Steps')
         plt.xticks(range(0, args.n_epochs + 1, 100), rotation='vertical')  # Add more x-axis ticks
         plt.savefig(os.path.join(args.results_path, f'loss_plot_.png'))
         plt.close()
